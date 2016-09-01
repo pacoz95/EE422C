@@ -42,6 +42,7 @@ void ST7735_uBinOut8(uint32_t n){
 	//filter out out of bounds parameters
 	if(n >= 256000){
 		ST7735_OutString("***.**");
+		return;
 	}
 	//get whole number part
 	uint32_t hold = (n*100) >> 8;
