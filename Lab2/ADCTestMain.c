@@ -32,11 +32,16 @@
 
 #define PF2             (*((volatile uint32_t *)0x40025010))
 #define PF1             (*((volatile uint32_t *)0x40025008))
+#define DUMP_SIZE 1000
 void DisableInterrupts(void); // Disable interrupts
 void EnableInterrupts(void);  // Enable interrupts
 long StartCritical (void);    // previous I bit, disable interrupts
 void EndCritical(long sr);    // restore I bit to previous value
 void WaitForInterrupt(void);  // low power mode
+
+uint32_t ADCdump[DUMP_SIZE];
+uint32_t TimerDump[DUMP_SIZE];
+uint32_t DumpIndex = 0;
 
 volatile uint32_t ADCvalue;
 // This debug function initializes Timer0A to request interrupts
@@ -66,7 +71,27 @@ void Timer0A_Handler(void){
   PF2 ^= 0x04;                   // profile
   PF2 ^= 0x04;                   // profile
   ADCvalue = ADC0_InSeq3();
+	ADCdump[DumpIndex] = ADCvalue;
+	TimerDump[DumpIndex] = TIMER1_TAR_R;
+	DumpIndex += 1;
   PF2 ^= 0x04;                   // profile
+}
+
+int GetTimeJitter(void){ //Uses global debug dump data to determine time jitter
+	int lowTime = TimerDump[0] - TimerDump[1];
+	int highTime = lowTime;
+	int hold; 
+	
+	for(int32_t k = 1; k < DUMP_SIZE - 1; k += 1){
+		hold = TimerDump[k] - TimerDump[k + 1];
+		if(hold < lowTime){
+			lowTime = hold;
+		}
+		else if(hold > highTime){
+			highTime = hold;
+		}
+	}
+	return highTime - lowTime;
 }
 int main(void){
   PLL_Init(Bus80MHz);                   // 80 MHz
