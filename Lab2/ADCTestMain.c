@@ -26,9 +26,13 @@
 // bottom of X-ohm potentiometer connected to ground
 // top of X-ohm potentiometer connected to +3.3V 
 #include <stdint.h>
+#include <stdio.h> //why do we have to include this to include ST7735.h?
 #include "ADCSWTrigger.h"
 #include "../inc/tm4c123gh6pm.h"
 #include "PLL.h"
+#include "Timer1.h"
+#include "fixed.h"
+#include "ST7735.h"
 
 #define PF2             (*((volatile uint32_t *)0x40025010))
 #define PF1             (*((volatile uint32_t *)0x40025008))
@@ -40,9 +44,9 @@ long StartCritical (void);    // previous I bit, disable interrupts
 void EndCritical(long sr);    // restore I bit to previous value
 void WaitForInterrupt(void);  // low power mode
 
-uint32_t ADCdump[DUMP_SIZE];
-uint32_t TimerDump[DUMP_SIZE];
-uint32_t DumpIndex = 0;
+volatile uint32_t ADCdump[DUMP_SIZE];
+volatile uint32_t TimerDump[DUMP_SIZE];
+volatile uint32_t DumpIndex = 0;
 
 volatile uint32_t ADCvalue;
 // This debug function initializes Timer0A to request interrupts
@@ -72,9 +76,11 @@ void Timer0A_Handler(void){
   PF2 ^= 0x04;                   // profile
   PF2 ^= 0x04;                   // profile
   ADCvalue = ADC0_InSeq3();
-	ADCdump[DumpIndex] = ADCvalue;
-	TimerDump[DumpIndex] = TIMER1_TAR_R;
-	DumpIndex += 1;
+	if(DumpIndex < DUMP_SIZE){
+		ADCdump[DumpIndex] = ADCvalue;
+		TimerDump[DumpIndex] = TIMER1_TAR_R;
+		DumpIndex += 1;
+	}
   PF2 ^= 0x04;                   // profile
 }
 
@@ -108,7 +114,7 @@ void GraphData(){
 	//TODO: Print the data...?
 }
 
-int main(void){
+int main_old(void){
   PLL_Init(Bus80MHz);                   // 80 MHz
   SYSCTL_RCGCGPIO_R |= 0x20;            // activate port F
   ADC0_InitSWTriggerSeq3_Ch9();         // allow time to finish activating
@@ -126,4 +132,32 @@ int main(void){
   }
 }
 
+int main(void){ //for jitter
+	PLL_Init(Bus80MHz);                   // 80 MHz
+	ST7735_InitR(INITR_REDTAB);						// initialize screen
+  SYSCTL_RCGCGPIO_R |= 0x20;            // activate port F
+  ADC0_InitSWTriggerSeq3_Ch9();         // allow time to finish activating
+  Timer0A_Init100HzInt();               // set up Timer0A for 100 Hz interrupts
+  GPIO_PORTF_DIR_R |= 0x06;             // make PF2, PF1 out (built-in LED)
+  GPIO_PORTF_AFSEL_R &= ~0x06;          // disable alt funct on PF2, PF1
+  GPIO_PORTF_DEN_R |= 0x06;             // enable digital I/O on PF2, PF1
+                                        // configure PF2 as GPIO
+  GPIO_PORTF_PCTL_R = (GPIO_PORTF_PCTL_R&0xFFFFF00F)+0x00000000;
+  GPIO_PORTF_AMSEL_R = 0;               // disable analog functionality on PF
+  PF2 = 0;                      				// Turn off LED
+	Timer1_Init_FullTime();								// Initialize Timer 1 to run for 53 seconds
+  EnableInterrupts();
+  while(DumpIndex < DUMP_SIZE){
+    PF1 ^= 0x02;  // toggles when running in main
+		DisableInterrupts();
+		int m = 1000000;
+		m /= 77777;
+		m /= 6;
+		m /= 26;
+		EnableInterrupts();
+  }
+	ST7735_OutUDec(GetTimeJitter()); 
+	ST7735_OutString(" cycles\n");
+	return 0;
+}
 
