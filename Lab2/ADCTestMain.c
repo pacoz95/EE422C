@@ -3,7 +3,7 @@
 // This program periodically samples ADC channel 0 and stores the
 // result to a global variable that can be accessed with the JTAG
 // debugger and viewed with the variable watch feature.
-// Daniel Valvano
+// Daniel Valvano - Edited by Eric Li and Paul Cozzi
 // September 5, 2015
 
 /* This example accompanies the book
@@ -33,6 +33,7 @@
 #define PF2             (*((volatile uint32_t *)0x40025010))
 #define PF1             (*((volatile uint32_t *)0x40025008))
 #define DUMP_SIZE 1000
+#define ADC_MAX_VALUE 4096
 void DisableInterrupts(void); // Disable interrupts
 void EnableInterrupts(void);  // Enable interrupts
 long StartCritical (void);    // previous I bit, disable interrupts
@@ -93,6 +94,20 @@ int GetTimeJitter(void){ //Uses global debug dump data to determine time jitter
 	}
 	return highTime - lowTime;
 }
+
+
+void GraphData(){
+	int dataQuantities[ADC_MAX_VALUE];
+	for(uint32_t k = 0; k < ADC_MAX_VALUE; k += 1){
+		dataQuantities[k] = 0;
+	}
+	
+	for(uint32_t k = 0; k < 1000; k += 1){
+		dataQuantities[ADCdump[k]] += 1;
+	}
+	//TODO: Print the data...?
+}
+
 int main(void){
   PLL_Init(Bus80MHz);                   // 80 MHz
   SYSCTL_RCGCGPIO_R |= 0x20;            // activate port F

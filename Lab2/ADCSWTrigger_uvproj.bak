@@ -425,6 +425,21 @@
               <FileType>1</FileType>
               <FilePath>.\PLL.c</FilePath>
             </File>
+            <File>
+              <FileName>Timer1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Timer1.c</FilePath>
+            </File>
+            <File>
+              <FileName>Timer1.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Timer1.h</FilePath>
+            </File>
+            <File>
+              <FileName>Arrays.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Arrays.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
