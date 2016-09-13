@@ -57,7 +57,7 @@
 // SS3 triggering event: software trigger
 // SS3 1st sample source: Ain9 (PE4)
 // SS3 interrupts: enabled but not promoted to controller
-void ADC0_InitSWTriggerSeq3_Ch9(void){ 
+void ADC0_InitSWTriggerSeq3_Ch9(int32_t averaging){ 
   SYSCTL_RCGCADC_R |= 0x0001;   // 7) activate ADC0 
                                   // 1) activate clock for Port E
   SYSCTL_RCGCGPIO_R |= 0x10;
@@ -68,7 +68,11 @@ void ADC0_InitSWTriggerSeq3_Ch9(void){
   GPIO_PORTE_AMSEL_R |= 0x10;     // 5) enable analog functionality on PE4
     
 //  while((SYSCTL_PRADC_R&0x0001) != 0x0001){};    // good code, but not yet implemented in simulator
-
+	int32_t avg = 0;
+	while(averaging >= 2){ //get value for averaging
+		averaging = averaging >> 1;
+		avg += 1;
+	}
 
   ADC0_PC_R &= ~0xF;              // 7) clear max sample rate field
   ADC0_PC_R |= 0x1;               //    configure for 125K samples/sec
@@ -78,6 +82,7 @@ void ADC0_InitSWTriggerSeq3_Ch9(void){
   ADC0_SSMUX3_R &= ~0x000F;       // 11) clear SS3 field
   ADC0_SSMUX3_R += 9;             //    set channel
   ADC0_SSCTL3_R = 0x0006;         // 12) no TS0 D0, yes IE0 END0
+	ADC0_SAC_R |= avg;							// Set  hardware averaging value
   ADC0_IM_R &= ~0x0008;           // 13) disable SS3 interrupts
   ADC0_ACTSS_R |= 0x0008;         // 14) enable sample sequencer 3
 }

@@ -5,5 +5,5 @@
 .\adctestmain.o: ../inc/tm4c123gh6pm.h
 .\adctestmain.o: PLL.h
 .\adctestmain.o: Timer1.h
-.\adctestmain.o: fixed.h
 .\adctestmain.o: ST7735.h
+.\adctestmain.o: InputOutput.h

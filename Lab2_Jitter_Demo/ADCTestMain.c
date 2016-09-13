@@ -31,8 +31,8 @@
 #include "../inc/tm4c123gh6pm.h"
 #include "PLL.h"
 #include "Timer1.h"
-#include "fixed.h"
 #include "ST7735.h"
+#include "InputOutput.h"
 
 #define PF2             (*((volatile uint32_t *)0x40025010))
 #define PF1             (*((volatile uint32_t *)0x40025008))
@@ -105,10 +105,11 @@ int GetTimeJitter(void){ //Uses global debug dump data to determine time jitter
 	return highTime - lowTime;											//return time jitter					
 }
 
-//This function assumes an initialized static array dataQuantities
+//--------------GraphData--------------
+//assumes an initialized static array dataQuantities
 //uses ADC data from the global ADCdump, and plots based on the quantity of each measurement
+//Does not support ADC ranges above 128
 void GraphData(char title[]){
-	
 	for(uint32_t k = 0; k < ADC_MAX_VALUE; k += 1){	//initialize array
 		dataQuantities[k] = 0;
 	}
@@ -139,7 +140,7 @@ void GraphData(char title[]){
 	int32_t numMeasurements = maxADC - minADC + 1;
 	int32_t xSize = 128;
 	int32_t barWidth = 1;
-	while(xSize > numMeasurements){
+	while(xSize > numMeasurements){		//get how much to scale the plot
 		xSize = xSize >> 1;
 		barWidth = barWidth << 1;
 	}
@@ -149,13 +150,17 @@ void GraphData(char title[]){
 	ST7735_OutString(title);				//Display plot title
 	ST7735_OutChar('\n');
 	
+	if(xSize > 128){								//Unsupported range
+		ST7735_OutString("ADC range too high\nPlease try again");
+		return;
+	}
 	ST7735_OutString("ADC: ");			//Display x scale
 	ST7735_OutUDec(minADC);					
 	ST7735_OutString(" to ");
 	ST7735_OutUDec(minADC + xSize); 
 	
-	ST7735_OutChar('\n');
-	ST7735_OutString("Quantity up to ");	//Display y scale
+	ST7735_OutChar('\n');													//Display y scale
+	ST7735_OutString("Quantity up to ");	
 	ST7735_OutUDec(maxQuantity); 
 
 	for(int32_t k = minADC; k <= maxADC; k += 1){ //plot the PMF
@@ -167,18 +172,15 @@ void GraphData(char title[]){
 	
 }
 
-int main(void){ 										//for displaying PMF
+int main_PMF(void){ 										//for displaying PMF
 	PLL_Init(Bus80MHz);                   // 80 MHz
 	ST7735_InitR(INITR_REDTAB);						// initialize screen
-  SYSCTL_RCGCGPIO_R |= 0x20;            // activate port F
-  ADC0_InitSWTriggerSeq3_Ch9();         // allow time to finish activating
+  PortF_Init();           							
+  ADC0_InitSWTriggerSeq3_Ch9(0);      	// activate ADC reading and interrupts
+	//ADC0_InitSWTriggerSeq3_Ch9(4);   
+	//ADC0_InitSWTriggerSeq3_Ch9(16);   
+	//ADC0_InitSWTriggerSeq3_Ch9(64);   
   Timer0A_Init100HzInt();               // set up Timer0A for 100 Hz interrupts
-  GPIO_PORTF_DIR_R |= 0x06;             // make PF2, PF1 out (built-in LED)
-  GPIO_PORTF_AFSEL_R &= ~0x06;          // disable alt funct on PF2, PF1
-  GPIO_PORTF_DEN_R |= 0x06;             // enable digital I/O on PF2, PF1
-                                        // configure PF2 as GPIO
-  GPIO_PORTF_PCTL_R = (GPIO_PORTF_PCTL_R&0xFFFFF00F)+0x00000000;
-  GPIO_PORTF_AMSEL_R = 0;               // disable analog functionality on PF
   PF2 = 0;                      				// Turn off LED
 	Timer1_Init_FullTime();								// Initialize Timer 1 to run for 53 seconds
   EnableInterrupts();
@@ -187,41 +189,19 @@ int main(void){ 										//for displaying PMF
 		volatile int32_t div = 787778873;		// create jitter
 		div /= 77777;
   }
-	GraphData("No hardware average");
-	while(1){PF1 ^= 0x02;}
+	GraphData("ADC Plot");
+	while(1){
+		PF1 ^= 0x02;
+	}
 	return 0;
 }
 
-int main_old(void){
-  PLL_Init(Bus80MHz);                   // 80 MHz
-  SYSCTL_RCGCGPIO_R |= 0x20;            // activate port F
-  ADC0_InitSWTriggerSeq3_Ch9();         // allow time to finish activating
-  Timer0A_Init100HzInt();               // set up Timer0A for 100 Hz interrupts
-  GPIO_PORTF_DIR_R |= 0x06;             // make PF2, PF1 out (built-in LED)
-  GPIO_PORTF_AFSEL_R &= ~0x06;          // disable alt funct on PF2, PF1
-  GPIO_PORTF_DEN_R |= 0x06;             // enable digital I/O on PF2, PF1
-                                        // configure PF2 as GPIO
-  GPIO_PORTF_PCTL_R = (GPIO_PORTF_PCTL_R&0xFFFFF00F)+0x00000000;
-  GPIO_PORTF_AMSEL_R = 0;               // disable analog functionality on PF
-  PF2 = 0;                      // turn off LED
-  EnableInterrupts();
-  while(1){
-    PF1 ^= 0x02;  // toggles when running in main
-  }
-}
-
-int main_jitter(void){ //for jitter
+int main(void){ //for jitter
 	PLL_Init(Bus80MHz);                   // 80 MHz
 	ST7735_InitR(INITR_REDTAB);						// initialize screen
-  SYSCTL_RCGCGPIO_R |= 0x20;            // activate port F
-  ADC0_InitSWTriggerSeq3_Ch9();         // allow time to finish activating
+  PortF_Init();           							// Initialize port F
+  ADC0_InitSWTriggerSeq3_Ch9(0);     		// activate ADC reading and interrupts
   Timer0A_Init100HzInt();               // set up Timer0A for 100 Hz interrupts
-  GPIO_PORTF_DIR_R |= 0x06;             // make PF2, PF1 out (built-in LED)
-  GPIO_PORTF_AFSEL_R &= ~0x06;          // disable alt funct on PF2, PF1
-  GPIO_PORTF_DEN_R |= 0x06;             // enable digital I/O on PF2, PF1
-                                        // configure PF2 as GPIO
-  GPIO_PORTF_PCTL_R = (GPIO_PORTF_PCTL_R&0xFFFFF00F)+0x00000000;
-  GPIO_PORTF_AMSEL_R = 0;               // disable analog functionality on PF
   PF2 = 0;                      				// Turn off LED
 	Timer1_Init_FullTime();								// Initialize Timer 1 to run for 53 seconds
   EnableInterrupts();
@@ -231,8 +211,35 @@ int main_jitter(void){ //for jitter
 		div /= 77777;
   }
 	ST7735_OutUDec(GetTimeJitter()); 			//print time jitter to ST7735
-	ST7735_OutString(" cycles\n"); 				//units of cycles
-																				
+	ST7735_OutString(" cycles\n"); 				
+	while(1){
+		PF1 ^= 0x02;
+	}																			
+	return 0;
+}
+
+int main_line(void){ //draw lines
+	PLL_Init(Bus80MHz);                   // 80 MHz
+	ST7735_InitR(INITR_REDTAB);						// initialize screen
+																				//display test lines
+	ST7735_Line(60, 0, 0, 0, ST7735_YELLOW); 		//horizontal	
+	ST7735_Line(60, 0, 10, 10, ST7735_RED);			//shallow
+	ST7735_Line(60, 0, 20, 40, ST7735_GREEN);		//45 degrees
+	ST7735_Line(60, 0, 50, 60, ST7735_BLUE);		//steep
+	ST7735_Line(60, 0, 60, 70, ST7735_WHITE);		//vertical
+	ST7735_Line(60, 0, 70, 60, ST7735_CYAN);		//steep
+	ST7735_Line(60, 0, 100, 40, ST7735_MAGENTA);//45 degrees
+	ST7735_Line(60, 0, 110, 10, ST7735_YELLOW);	//shallow	
+	
+	ST7735_Line(60, 159, 10, 145, ST7735_YELLOW);//shallow	
+	ST7735_Line(60, 159, 20, 119, ST7735_RED);		//45
+	ST7735_Line(60, 159, 40, 99, ST7735_GREEN);	//steep
+	ST7735_Line(60, 159, 60, 90, ST7735_BLUE);	//vertical
+	ST7735_Line(60, 159, 80, 99, ST7735_WHITE);	//steep xxxx
+	ST7735_Line(60, 159, 100, 119, ST7735_CYAN);	//45
+	ST7735_Line(60, 159, 110, 145, ST7735_MAGENTA);//shallow
+	ST7735_Line(60, 159, 127, 159, ST7735_YELLOW);//horizontal
+	
 	return 0;
 }
 
