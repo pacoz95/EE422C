@@ -90,8 +90,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include "ST7735.h"
 #include "../inc/tm4c123gh6pm.h"
+#include "ST7735.h"
+
 
 // 16 rows (0 to 15) and 21 characters (0 to 20)
 // Requires (11 + size*size*6*8) bytes of transmission for each character
@@ -766,7 +767,89 @@ void ST7735_InitB(void) {
   StTextColor = ST7735_YELLOW;
   ST7735_FillScreen(0);                 // set screen to black
 }
-
+//-------------ST7735_Line-------------
+//draw a line on the screen
+//Input: start point (x1, y1) and end point (x2, y2) and color
+//Output: none
+void ST7735_Line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color){
+	if(x1 > x2){					//ensure x is always increasing 
+		uint16_t temp = x1;
+		x1 = x2;
+		x2 = temp;
+		temp = y1;
+		y1 = y2;
+		y2 = temp;
+	}
+	int32_t dx = x2 - x1;
+	int32_t dy = y2 - y1;
+	if(dx == 0){					//vertical line, prevent divide by 0
+		int16_t y;
+		int16_t yGoal;
+		
+		if(y2 < y1){
+			y = y2;
+			yGoal = y1;
+		}
+		else{
+			y = y1;
+			yGoal = y2;
+		}
+		while(y <= yGoal){
+			ST7735_DrawPixel(x1, y, color);
+			y += 1;
+		}
+	}
+	int32_t slope;
+	int16_t x = x1;
+	int16_t y = y1;
+	int32_t whenUp;
+	if(dx >= dy && dy >= 0){ 		//positive slope, increment x every time (increment y sometimes)
+		slope = (dy*1000) / dx;		//slope multiplied by 1000 to keep precision
+		for(whenUp = slope - 1000; x <= x2; x += 1){
+			if(whenUp > 0){
+				y += 1;
+				whenUp -= 1000;
+			}
+			ST7735_DrawPixel(x, y, color);
+			whenUp += slope;
+		} 
+	}
+	else if(dy > dx && dy >= 0){//positive slope, increment y every time (increment x sometimes)
+		slope = (dx * 1000) / dy;
+		for(whenUp = slope - 1000; y <= y2; y += 1){
+			if(whenUp > 0){
+				x += 1;
+				whenUp -= 1000;
+			}
+			ST7735_DrawPixel(x, y, color);
+			whenUp += slope;
+		}
+	}
+	else if(-dy <= dx){					//negative slope, increment x every time (decrement y sometimes)
+		slope = -(dy * 1000) / dx;//use a positive slope every time
+		for(whenUp = slope - 1000;  x <= x2; x += 1){
+			if(whenUp > 0){
+				y -= 1;
+				whenUp -= 1000;
+			}
+			ST7735_DrawPixel(x, y, color);
+			whenUp += slope;
+		}
+	}
+	else{//if -dy > dx				//negative slope, decrement y every time (increment x sometimes)
+		slope = -(dx * 1000) / dy;
+		for(whenUp = slope - 1000; y >= y2; y -= 1){
+			if(whenUp > 0){
+				x += 1;
+				whenUp -= 1000;
+			}
+			ST7735_DrawPixel(x, y, color);
+			whenUp += slope;
+		}
+	}
+	
+	
+}
 
 //------------ST7735_InitR------------
 // Initialization for ST7735R screens (green or red tabs).
