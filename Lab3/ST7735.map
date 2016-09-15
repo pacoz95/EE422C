@@ -101,6 +101,8 @@ Section Cross References
     main.o(i.main) refers to pll.o(i.PLL_Init) for PLL_Init
     main.o(i.main) refers to st7735.o(i.ST7735_InitR) for ST7735_InitR
     main.o(i.main) refers to startup.o(.text) for WaitForInterrupt
+    main.o(i.main) refers to main.o(.data) for stateAction
+    systick.o(i.SysTick_Wait10ms) refers to systick.o(i.SysTick_Wait) for SysTick_Wait
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry10a.o(.ARM.Collect$$$$0000000D) for __rt_final_cpp
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry11a.o(.ARM.Collect$$$$0000000F) for __rt_final_exit
     entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry7b.o(.ARM.Collect$$$$00000008) for _main_clock
@@ -159,8 +161,12 @@ Removing Unused input sections from the image.
     Removing st7735.o(i.fputc), (16 bytes).
     Removing st7735.o(i.pushColor), (18 bytes).
     Removing st7735.o(.bss), (12 bytes).
+    Removing switchinit.o(i.Switch_Init), (116 bytes).
+    Removing systick.o(i.SysTick_Init), (24 bytes).
+    Removing systick.o(i.SysTick_Wait), (32 bytes).
+    Removing systick.o(i.SysTick_Wait10ms), (28 bytes).
 
-37 unused section(s) (total 3404 bytes) removed from the image.
+41 unused section(s) (total 3604 bytes) removed from the image.
 
 ==============================================================================
 
@@ -171,22 +177,24 @@ Image Symbol Table
     Symbol Name                              Value     Ov Type        Size  Object(Section)
 
     RESET                                    0x00000000   Section      644  startup.o(RESET)
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry2.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry5.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7a.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7b.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8a.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11a.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11b.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8b.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10b.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8a.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10a.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9b.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7a.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry5.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry2.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry.o ABSOLUTE
     Main.c                                   0x00000000   Number         0  main.o ABSOLUTE
     PLL.c                                    0x00000000   Number         0  pll.o ABSOLUTE
     ST7735.c                                 0x00000000   Number         0  st7735.o ABSOLUTE
+    SwitchInit.c                             0x00000000   Number         0  switchinit.o ABSOLUTE
+    SysTick.c                                0x00000000   Number         0  systick.o ABSOLUTE
     dc.s                                     0x00000000   Number         0  dc.o ABSOLUTE
     handlers.s                               0x00000000   Number         0  handlers.o ABSOLUTE
     init.s                                   0x00000000   Number         0  init.o ABSOLUTE
@@ -217,19 +225,19 @@ Image Symbol Table
     i.commonInit                             0x00000554   Section        0  st7735.o(i.commonInit)
     commonInit                               0x00000555   Thumb Code   340  st7735.o(i.commonInit)
     i.main                                   0x000006d8   Section        0  main.o(i.main)
-    i.setAddrWindow                          0x000006ec   Section        0  st7735.o(i.setAddrWindow)
-    setAddrWindow                            0x000006ed   Thumb Code   106  st7735.o(i.setAddrWindow)
-    i.writecommand                           0x00000760   Section        0  st7735.o(i.writecommand)
-    writecommand                             0x00000761   Thumb Code    40  st7735.o(i.writecommand)
-    i.writedata                              0x00000790   Section        0  st7735.o(i.writedata)
-    writedata                                0x00000791   Thumb Code    24  st7735.o(i.writedata)
-    .constdata                               0x000007b0   Section     2018  st7735.o(.constdata)
-    Font                                     0x000007b0   Data        1275  st7735.o(.constdata)
-    Bcmd                                     0x00000cab   Data         103  st7735.o(.constdata)
-    Rcmd1                                    0x00000d12   Data          59  st7735.o(.constdata)
-    Rcmd2green                               0x00000d4d   Data          13  st7735.o(.constdata)
-    Rcmd2red                                 0x00000d5a   Data          13  st7735.o(.constdata)
-    Rcmd3                                    0x00000d67   Data          43  st7735.o(.constdata)
+    i.setAddrWindow                          0x000006f8   Section        0  st7735.o(i.setAddrWindow)
+    setAddrWindow                            0x000006f9   Thumb Code   106  st7735.o(i.setAddrWindow)
+    i.writecommand                           0x0000076c   Section        0  st7735.o(i.writecommand)
+    writecommand                             0x0000076d   Thumb Code    40  st7735.o(i.writecommand)
+    i.writedata                              0x0000079c   Section        0  st7735.o(i.writedata)
+    writedata                                0x0000079d   Thumb Code    24  st7735.o(i.writedata)
+    .constdata                               0x000007bc   Section     2018  st7735.o(.constdata)
+    Font                                     0x000007bc   Data        1275  st7735.o(.constdata)
+    Bcmd                                     0x00000cb7   Data         103  st7735.o(.constdata)
+    Rcmd1                                    0x00000d1e   Data          59  st7735.o(.constdata)
+    Rcmd2green                               0x00000d59   Data          13  st7735.o(.constdata)
+    Rcmd2red                                 0x00000d66   Data          13  st7735.o(.constdata)
+    Rcmd3                                    0x00000d73   Data          43  st7735.o(.constdata)
     .data                                    0x20000000   Section       44  st7735.o(.data)
     _width                                   0x2000000a   Data           2  st7735.o(.data)
     _height                                  0x2000000c   Data           2  st7735.o(.data)
@@ -237,6 +245,8 @@ Image Symbol Table
     RowStart                                 0x20000015   Data           1  st7735.o(.data)
     Rotation                                 0x20000016   Data           1  st7735.o(.data)
     TabColor                                 0x20000017   Data           1  st7735.o(.data)
+    .data                                    0x2000002c   Section        4  main.o(.data)
+    stateAction                              0x2000002c   Data           4  main.o(.data)
     STACK                                    0x20000030   Section     1024  startup.o(STACK)
     StackMem                                 0x20000030   Data           0  startup.o(STACK)
 
@@ -401,10 +411,10 @@ Image Symbol Table
     __scatterload_copy                       0x000004e1   Thumb Code    14  handlers.o(i.__scatterload_copy)
     __scatterload_null                       0x000004ef   Thumb Code     2  handlers.o(i.__scatterload_null)
     __scatterload_zeroinit                   0x000004f1   Thumb Code    14  handlers.o(i.__scatterload_zeroinit)
-    main                                     0x000006d9   Thumb Code    20  main.o(i.main)
-    dBfs                                     0x00000d92   Data         512  st7735.o(.constdata)
-    Region$$Table$$Base                      0x00000f94   Number         0  anon$$obj.o(Region$$Table)
-    Region$$Table$$Limit                     0x00000fb4   Number         0  anon$$obj.o(Region$$Table)
+    main                                     0x000006d9   Thumb Code    26  main.o(i.main)
+    dBfs                                     0x00000d9e   Data         512  st7735.o(.constdata)
+    Region$$Table$$Base                      0x00000fa0   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x00000fc0   Number         0  anon$$obj.o(Region$$Table)
     StX                                      0x20000000   Data           4  st7735.o(.data)
     StY                                      0x20000004   Data           4  st7735.o(.data)
     StTextColor                              0x20000008   Data           2  st7735.o(.data)
@@ -424,56 +434,56 @@ Memory Map of the image
 
   Image Entry point : 0x0000026d
 
-  Load Region LR_1 (Base: 0x00000000, Size: 0x00000fe0, Max: 0xffffffff, ABSOLUTE)
+  Load Region LR_1 (Base: 0x00000000, Size: 0x00000ff0, Max: 0xffffffff, ABSOLUTE)
 
-    Execution Region ER_RO (Base: 0x00000000, Size: 0x00000fb4, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_RO (Base: 0x00000000, Size: 0x00000fc0, Max: 0xffffffff, ABSOLUTE)
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
     0x00000000   0x00000284   Code   RO            3  * RESET               startup.o
-    0x00000284   0x00000000   Code   RO          328  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
-    0x00000284   0x00000004   Code   RO          331    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
-    0x00000288   0x00000004   Code   RO          334    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
-    0x0000028c   0x00000000   Code   RO          336    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
-    0x0000028c   0x00000000   Code   RO          338    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
-    0x0000028c   0x00000008   Code   RO          339    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
-    0x00000294   0x00000000   Code   RO          341    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
-    0x00000294   0x00000000   Code   RO          343    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
-    0x00000294   0x00000004   Code   RO          332    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
+    0x00000284   0x00000000   Code   RO          369  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
+    0x00000284   0x00000004   Code   RO          372    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
+    0x00000288   0x00000004   Code   RO          375    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
+    0x0000028c   0x00000000   Code   RO          377    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
+    0x0000028c   0x00000000   Code   RO          379    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
+    0x0000028c   0x00000008   Code   RO          380    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
+    0x00000294   0x00000000   Code   RO          382    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
+    0x00000294   0x00000000   Code   RO          384    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
+    0x00000294   0x00000004   Code   RO          373    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
     0x00000298   0x0000001c   Code   RO            4    .text               startup.o
-    0x000002b4   0x00000024   Code   RO          345    .text               mc_w.l(init.o)
+    0x000002b4   0x00000024   Code   RO          386    .text               mc_w.l(init.o)
     0x000002d8   0x00000020   Code   RO           34    i.Delay1ms          st7735.o
     0x000002f8   0x0000007c   Code   RO           12    i.PLL_Init          pll.o
     0x00000374   0x000000ac   Code   RO           48    i.ST7735_FillRect   st7735.o
     0x00000420   0x00000024   Code   RO           49    i.ST7735_FillScreen  st7735.o
     0x00000444   0x0000007c   Code   RO           51    i.ST7735_InitR      st7735.o
     0x000004c0   0x00000020   Code   RO           65    i.ST7735_SetCursor  st7735.o
-    0x000004e0   0x0000000e   Code   RO          349    i.__scatterload_copy  mc_w.l(handlers.o)
-    0x000004ee   0x00000002   Code   RO          350    i.__scatterload_null  mc_w.l(handlers.o)
-    0x000004f0   0x0000000e   Code   RO          351    i.__scatterload_zeroinit  mc_w.l(handlers.o)
+    0x000004e0   0x0000000e   Code   RO          390    i.__scatterload_copy  mc_w.l(handlers.o)
+    0x000004ee   0x00000002   Code   RO          391    i.__scatterload_null  mc_w.l(handlers.o)
+    0x000004f0   0x0000000e   Code   RO          392    i.__scatterload_zeroinit  mc_w.l(handlers.o)
     0x000004fe   0x00000056   Code   RO           69    i.commandList       st7735.o
     0x00000554   0x00000184   Code   RO           70    i.commonInit        st7735.o
-    0x000006d8   0x00000014   Code   RO          316    i.main              main.o
-    0x000006ec   0x00000074   Code   RO           76    i.setAddrWindow     st7735.o
-    0x00000760   0x00000030   Code   RO           77    i.writecommand      st7735.o
-    0x00000790   0x00000020   Code   RO           78    i.writedata         st7735.o
-    0x000007b0   0x000007e2   Data   RO           80    .constdata          st7735.o
-    0x00000f92   0x00000002   PAD
-    0x00000f94   0x00000020   Data   RO          347    Region$$Table       anon$$obj.o
+    0x000006d8   0x00000020   Code   RO          316    i.main              main.o
+    0x000006f8   0x00000074   Code   RO           76    i.setAddrWindow     st7735.o
+    0x0000076c   0x00000030   Code   RO           77    i.writecommand      st7735.o
+    0x0000079c   0x00000020   Code   RO           78    i.writedata         st7735.o
+    0x000007bc   0x000007e2   Data   RO           80    .constdata          st7735.o
+    0x00000f9e   0x00000002   PAD
+    0x00000fa0   0x00000020   Data   RO          388    Region$$Table       anon$$obj.o
 
 
-    Execution Region ER_RW (Base: 0x20000000, Size: 0x0000002c, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_RW (Base: 0x20000000, Size: 0x00000030, Max: 0xffffffff, ABSOLUTE)
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
     0x20000000   0x0000002c   Data   RW           81    .data               st7735.o
+    0x2000002c   0x00000004   Data   RW          317    .data               main.o
 
 
-    Execution Region ER_ZI (Base: 0x2000002c, Size: 0x00000404, Max: 0xffffffff, ABSOLUTE)
+    Execution Region ER_ZI (Base: 0x20000030, Size: 0x00000400, Max: 0xffffffff, ABSOLUTE)
 
     Base Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x2000002c   0x00000004   PAD
     0x20000030   0x00000400   Zero   RW            1    STACK               startup.o
 
 
@@ -484,15 +494,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
 
-        20          0          0          0          0        351   main.o
+        32          6          0          4          0        755   main.o
        124          6          0          0          0       4607   pll.o
       1066        134       2018         44          0       8564   st7735.o
        672        622          0          0       1024        852   startup.o
 
     ----------------------------------------------------------------------
-      1882        762       2052         44       1028      14374   Object Totals
+      1894        768       2052         48       1024      14778   Object Totals
          0          0         32          0          0          0   (incl. Generated)
-         0          0          2          0          4          0   (incl. Padding)
+         0          0          2          0          0          0   (incl. Padding)
 
     ----------------------------------------------------------------------
 
@@ -529,15 +539,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-      1968        778       2052         44       1028      13922   Grand Totals
-      1968        778       2052         44       1028      13922   ELF Image Totals
-      1968        778       2052         44          0          0   ROM Totals
+      1980        784       2052         48       1024      14326   Grand Totals
+      1980        784       2052         48       1024      14326   ELF Image Totals
+      1980        784       2052         48          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                 4020 (   3.93kB)
+    Total RO  Size (Code + RO Data)                 4032 (   3.94kB)
     Total RW  Size (RW Data + ZI Data)              1072 (   1.05kB)
-    Total ROM Size (Code + RO Data + RW Data)       4064 (   3.97kB)
+    Total ROM Size (Code + RO Data + RW Data)       4080 (   3.98kB)
 
 ==============================================================================
 
