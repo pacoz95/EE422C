@@ -48,5 +48,10 @@ static void alarmSet(int32_t index);			//Paul
 *****************************************/
 void Alarm_Menu(void);											//Paul
 
+/******************Alarm_SoundIfActive***
+*Sounds an alarm if the given time is set as an alarm
+*****************************************/
+void Alarm_SoundIfActive(int32_t time);			//Eric
+
 
 
