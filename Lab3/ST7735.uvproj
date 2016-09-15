@@ -426,9 +426,14 @@
               <FilePath>.\Main.c</FilePath>
             </File>
             <File>
-              <FileName>SwitchInit.c</FileName>
+              <FileName>Clock.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\SwitchInit.c</FilePath>
+              <FilePath>.\Clock.c</FilePath>
+            </File>
+            <File>
+              <FileName>Alarm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Alarm.c</FilePath>
             </File>
           </Files>
         </Group>

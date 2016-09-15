@@ -22,3 +22,12 @@ int32_t SW1Triggered = 0; //PE0
 int32_t SW2Triggered = 0; //PE1
 int32_t SW3Triggered = 0; //PE2
 int32_t SW4Triggered = 0; //PE3
+
+/************stateAction**************
+*main will call a different function based on the state of the system
+*this is the variable that holds that function
+**************************************/
+
+void (*stateAction)(void);						//perform a different function depending on the state of the system
+																						//set in interrupts that change system state
+

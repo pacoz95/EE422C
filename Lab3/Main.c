@@ -37,20 +37,19 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include "ST7735.h"
 #include "PLL.h"
 #include "../inc/tm4c123gh6pm.h"
+#include "Clock.h"
+#include "Globals.h"
 
 void WaitForInterrupt(void);								//enter low power state, defined in startup.s
 
-static void (*stateAction)(void);						//perform a different function depending on the state of the system
-																						//set in interrupts that change system state
 
 int main(void){
 	PLL_Init(Bus80MHz);												//initialize the bus to 80 MHz
-	ST7735_InitR(INITR_REDTAB);								//initialize the screen
-	while(1){
-		WaitForInterrupt();		
+	Clock_Init();															//initialize the clock
+	stateAction = Clock_MainPageAnalog;				//starting state is the main page, or the analog clock display
+	while(1){	
 		(*stateAction)();												//call function based on state of system
 	}
 	return 0;
