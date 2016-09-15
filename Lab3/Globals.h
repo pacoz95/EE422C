@@ -13,3 +13,12 @@
 *Initialized to 12:00:00
 *************************************/
 int32_t CurrentTime = 0x000C0000;
+
+/************Switch Trigger indicators********
+*These will be set in their respective switch interrupts
+*cleared when they are serviced (in whatever function they're used in)
+**********************************************/
+int32_t SW1Triggered = 0; //PE0
+int32_t SW2Triggered = 0; //PE1
+int32_t SW3Triggered = 0; //PE2
+int32_t SW4Triggered = 0; //PE3
