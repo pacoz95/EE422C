@@ -35,51 +35,23 @@
 // VCC (pin 2) connected to +3.3 V
 // Gnd (pin 1) connected to ground
 
-// **********wide.hk ST7735R with ADXL345 accelerometer *******************
-// Silkscreen Label (SDC side up; LCD side down) - Connection
-// VCC  - +3.3 V
-// GND  - Ground
-// !SCL - PA2 Sclk SPI clock from microcontroller to TFT or SDC
-// !SDA - PA5 MOSI SPI data from microcontroller to TFT or SDC
-// DC   - PA6 TFT data/command
-// RES  - PA7 TFT reset
-// CS   - PA3 TFT_CS, active low to enable TFT
-// *CS  - (NC) SDC_CS, active low to enable SDC
-// MISO - (NC) MISO SPI data from SDC to microcontroller
-// SDA  – (NC) I2C data for ADXL345 accelerometer
-// SCL  – (NC) I2C clock for ADXL345 accelerometer
-// SDO  – (NC) I2C alternate address for ADXL345 accelerometer
-// Backlight + - Light, backlight connected to +3.3 V
-
-// **********wide.hk ST7735R with ADXL335 accelerometer *******************
-// Silkscreen Label (SDC side up; LCD side down) - Connection
-// VCC  - +3.3 V
-// GND  - Ground
-// !SCL - PA2 Sclk SPI clock from microcontroller to TFT or SDC
-// !SDA - PA5 MOSI SPI data from microcontroller to TFT or SDC
-// DC   - PA6 TFT data/command
-// RES  - PA7 TFT reset
-// CS   - PA3 TFT_CS, active low to enable TFT
-// *CS  - (NC) SDC_CS, active low to enable SDC
-// MISO - (NC) MISO SPI data from SDC to microcontroller
-// X– (NC) analog input X-axis from ADXL335 accelerometer
-// Y– (NC) analog input Y-axis from ADXL335 accelerometer
-// Z– (NC) analog input Z-axis from ADXL335 accelerometer
-// Backlight + - Light, backlight connected to +3.3 V
-
 #include <stdio.h>
 #include <stdint.h>
 #include "ST7735.h"
 #include "PLL.h"
 #include "../inc/tm4c123gh6pm.h"
 
-void WaitForInterrupt(void);								//enter low power state
+void WaitForInterrupt(void);								//enter low power state, defined in startup.s
+
+static void (*stateAction)(void);						//perform a different function depending on the state of the system
+																						//set in interrupts that change system state
 
 int main(void){
 	PLL_Init(Bus80MHz);												//initialize the bus to 80 MHz
 	ST7735_InitR(INITR_REDTAB);								//initialize the screen
 	while(1){
-		WaitForInterrupt();											
+		WaitForInterrupt();		
+		(*stateAction)();												//call function based on state of system
 	}
 	return 0;
 }
